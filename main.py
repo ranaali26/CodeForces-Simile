@@ -1,69 +1,6 @@
-import requests
-from tqdm import tqdm
-
-def user_status(handle):
-    url = f"https://codeforces.com/api/user.status?handle={handle}"
-    response = requests.get(url)
-    if response.status_code == 200:
-        data = response.json()
-        if data["status"] == "OK":
-            return data["result"]
-        else:
-            print("Sorry, Data not found!")
-    else:
-        print(f"Sorry, Handle '{handle}' not found!")
-    return []
-
-
-def accepted_submissions(submissions):
-    accepted = set()
-    for it in submissions:
-        if it.get("verdict") == "OK":
-            i = it["problem"]
-            problem = f"{i['contestId']}-{i['index']}-{i.get('name', 'Unknown')}-{i.get('rating', 'Unrated')}"
-            accepted.add(problem)
-    return accepted
-
-
-def sort_rating(problem):
-    parts = problem.split('-')
-    if len(parts) == 4 and parts[3].isdigit():
-        return int(parts[3])
-    return 0
-
-def get_problem_statistics(submissions):
-    stats = {
-        "total_submissions": len(submissions),
-        "accepted_submissions": 0,
-        "unique_accepted_problems": 0,
-        "average_time_to_solve": 0,
-        "problem_ratings": {},
-    }
-
-    accepted_times = []
-    accepted_problems = set()
-
-    for it in submissions:
-        if it.get("verdict") == "OK":
-            stats["accepted_submissions"] += 1
-            problem = f"{it['problem']['contestId']}-{it['problem']['index']}"
-            if problem not in accepted_problems:
-                accepted_problems.add(problem)
-                stats["unique_accepted_problems"] += 1
-                if "creationTimeSeconds" in it:
-                    accepted_times.append(it["creationTimeSeconds"])
-            rating = it["problem"].get("rating", "Unrated")
-            if rating != "Unrated":
-                stats["problem_ratings"][rating] = stats["problem_ratings"].get(rating, 0) + 1
-
-    if accepted_times:
-        stats["average_time_to_solve"] = (max(accepted_times) - min(accepted_times)) / len(accepted_times) if len(
-            accepted_times) > 1 else 0
-
-    return stats
-
-def display_progress_bar(iterable, desc):
-    return tqdm(iterable, desc=desc, unit="submission")
+from api_functions import user_status, accepted_submissions
+from statistics_functions import get_problem_statistics, sort_rating
+from utils import display_progress_bar
 
 def main():
     user = input("Enter your handle: ")
@@ -97,7 +34,7 @@ def main():
             else:
                 sorted_comparison = sorted(comparison, key=sort_rating, reverse=True)
                 print(f"\nProblems solved by {compare_to} but not by {user}:")
-                for problem in sorted_comparison:
+                for problem in display_progress_bar(sorted_comparison, desc="Displaying problems"):
                     print(problem)
 
         elif choice == "2":
@@ -107,7 +44,7 @@ def main():
             else:
                 sorted_comparison = sorted(comparison, key=sort_rating, reverse=True)
                 print(f"\nProblems solved by {user} but not by {compare_to}:")
-                for problem in sorted_comparison:
+                for problem in display_progress_bar(sorted_comparison, desc="Displaying problems"):
                     print(problem)
 
         elif choice == "3":
