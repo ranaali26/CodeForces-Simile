@@ -4,43 +4,35 @@ from utils.api_functions import user_status, accepted_submissions
 from utils.statistics_functions import get_problem_statistics, sort_rating
 
 
-class CodeforceComparator(tk.Tk):
+class codeforcessimile(tk.Tk):
     def __init__(self):
         super().__init__()
 
-        # Window configuration
-        self.title("Codeforces Comparator")
+        self.title("CodeForces Simile")
         self.geometry("800x600")
 
-        # Create main frame
         self.main_frame = ttk.Frame(self, padding="10")
         self.main_frame.grid(row=0, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
 
-        # User input section
-        self.create_input_section()
+        self.input_section()
+        self.buttons_section()
+        self.results_section()
 
-        # Buttons section
-        self.create_buttons_section()
-
-        # Results section
-        self.create_results_section()
-
-    def create_input_section(self):
-        # User handles input
+    def input_section(self):
         ttk.Label(self.main_frame, text="Your Handle:").grid(row=0, column=0, pady=5)
         self.user_handle = ttk.Entry(self.main_frame)
         self.user_handle.grid(row=0, column=1, pady=5)
 
-        ttk.Label(self.main_frame, text="Friend's Handle:").grid(row=1, column=0, pady=5)
+        ttk.Label(self.main_frame, text="Your Friend's Handle:").grid(row=1, column=0, pady=5)
         self.friend_handle = ttk.Entry(self.main_frame)
         self.friend_handle.grid(row=1, column=1, pady=5)
 
-        # Fetch button
         ttk.Button(self.main_frame, text="Fetch Data",
                    command=self.fetch_data).grid(row=2, column=0, columnspan=2, pady=10)
 
-    def create_buttons_section(self):
-        buttons_frame = ttk.LabelFrame(self.main_frame, text="Options", padding="10")
+
+    def buttons_section(self):
+        buttons_frame = ttk.LabelFrame(self.main_frame, text="Menu", padding="10")
         buttons_frame.grid(row=3, column=0, columnspan=2, pady=10, sticky="ew")
 
         button_texts = [
@@ -53,17 +45,15 @@ class CodeforceComparator(tk.Tk):
 
         for idx, text in enumerate(button_texts):
             ttk.Button(buttons_frame, text=text,
-                       command=lambda x=idx: self.handle_button_click(x)).pack(fill="x", pady=2)
+                       command=lambda x=idx: self.button_click(x)).pack(fill="x", pady=2)
 
-    def create_results_section(self):
-        # Results display
+    def results_section(self):
         results_frame = ttk.LabelFrame(self.main_frame, text="Results", padding="10")
         results_frame.grid(row=4, column=0, columnspan=2, pady=10, sticky="nsew")
 
         self.results_text = tk.Text(results_frame, height=15, width=60)
         self.results_text.pack(fill="both", expand=True)
 
-        # Add scrollbar
         scrollbar = ttk.Scrollbar(results_frame, orient="vertical", command=self.results_text.yview)
         scrollbar.pack(side="right", fill="y")
         self.results_text.configure(yscrollcommand=scrollbar.set)
@@ -77,7 +67,6 @@ class CodeforceComparator(tk.Tk):
                 messagebox.showerror("Error", "Please enter both handles!")
                 return
 
-            # Using imported functions
             self.user_submissions = user_status(user)
             self.friend_submissions = user_status(friend)
 
@@ -93,24 +82,24 @@ class CodeforceComparator(tk.Tk):
         except Exception as e:
             messagebox.showerror("Error", f"Error fetching data: {str(e)}")
 
-    def handle_button_click(self, button_index):
+    def button_click(self, button_index):
         if not hasattr(self, 'user_submissions'):
             messagebox.showerror("Error", "Please fetch data first!")
             return
 
         self.results_text.delete(1.0, tk.END)
 
-        if button_index == 0:  # Problems solved by friend only
+        if button_index == 0:
             comparison = self.friend_accepted - self.user_accepted
-            self.display_comparison(comparison, "Problems solved by friend but not by you")
-        elif button_index == 1:  # Problems solved by you only
+            self.display_comparison(comparison, "Problems solved by your friend but not by you")
+        elif button_index == 1:
             comparison = self.user_accepted - self.friend_accepted
-            self.display_comparison(comparison, "Problems solved by you but not by friend")
-        elif button_index == 2:  # Your Statistics
+            self.display_comparison(comparison, "Problems solved by you but not by your friend")
+        elif button_index == 2:
             self.display_statistics(self.user_stats, self.user_handle.get())
-        elif button_index == 3:  # Friend's Statistics
+        elif button_index == 3:
             self.display_statistics(self.friend_stats, self.friend_handle.get())
-        elif button_index == 4:  # Compare Statistics
+        elif button_index == 4:
             self.compare_statistics()
 
     def display_comparison(self, comparison, title):
@@ -157,5 +146,5 @@ class CodeforceComparator(tk.Tk):
 
 
 if __name__ == "__main__":
-    app = CodeforceComparator()
+    app = codeforcessimile()
     app.mainloop()
