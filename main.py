@@ -88,21 +88,21 @@ def main():
         user = safe_input("\nEnter your handle: ", validate_handle, "Invalid handle")
         compare_to = safe_input("Enter your friend's handle: ", validate_handle, "Invalid handle")
 
-        print(f"\n⏳ Fetching submissions for {user}...")
+        print(f"\nFetching submissions for {user}...")
         user_submissions = user_status(user)
-        print(f"⏳ Fetching submissions for {compare_to}...")
+        print(f"Fetching submissions for {compare_to}...")
         compare_to_submissions = user_status(compare_to)
 
-        print("✅ Data fetched successfully!\n")
+        print("Data fetched successfully!\n")
 
     except HandleNotFoundError as e:
-        print(f"\n❌ {e}")
+        print(f"\n{e}")
         return
     except APIConnectionError as e:
-        print(f"\n🌐 Connection Error: {e}")
+        print(f"\nConnection Error: {e}")
         return
     except CodeforcesAPIError as e:
-        print(f"\n⚠️ API Error: {e}")
+        print(f"\nAPI Error: {e}")
         return
 
     user_accepted = accepted_submissions(user_submissions)
@@ -142,11 +142,11 @@ def main():
             display_comparison_table(user, compare_to, user_stats, compare_to_stats)
 
         elif choice == "6":
-            print("\n👋 Goodbye! Keep coding!")
+            print("\nGoodbye! Keep coding!")
             break
 
         else:
-            print("❌ Invalid choice! Please enter a number between 1 and 6.")
+            print("Invalid choice! Please enter a number between 1 and 6.")
 
 
 if __name__ == "__main__":
