@@ -1,40 +1,79 @@
+from collections import defaultdict
+
+
 def get_problem_statistics(submissions):
+    if not submissions:
+        return {
+            "total_submissions": 0,
+            "accepted_submissions": 0,
+            "unique_accepted_problems": 0,
+            "acceptance_rate": 0,
+            "average_attempts_before_ac": 0,
+            "problem_ratings": {},
+            "languages_used": {},
+            "verdicts_distribution": {},
+        }
+
     stats = {
         "total_submissions": len(submissions),
         "accepted_submissions": 0,
         "unique_accepted_problems": 0,
-        "average_time_to_solve": 0,
+        "acceptance_rate": 0,
+        "average_attempts_before_ac": 0,
         "problem_ratings": {},
+        "languages_used": {},
+        "verdicts_distribution": {},
     }
 
-    accepted_times = []
     accepted_problems = set()
+    problem_attempts = defaultdict(int)
+    languages = defaultdict(int)
+    verdicts = defaultdict(int)
 
-    for it in submissions:
-        if it.get("verdict") == "OK":
+    for sub in submissions:
+        if not isinstance(sub, dict):
+            continue
+
+        verdict = sub.get("verdict", "Unknown")
+        verdicts[verdict] += 1
+
+        lang = sub.get("programmingLanguage", "Unknown")
+        languages[lang] += 1
+
+        problem = sub.get("problem", {})
+        problem_id = f"{problem.get('contestId', '?')}-{problem.get('index', '?')}"
+        problem_attempts[problem_id] += 1
+
+        if verdict == "OK":
             stats["accepted_submissions"] += 1
-            problem = f"{it['problem']['contestId']}-{it['problem']['index']}"
-            if problem not in accepted_problems:
-                accepted_problems.add(problem)
+            if problem_id not in accepted_problems:
+                accepted_problems.add(problem_id)
                 stats["unique_accepted_problems"] += 1
-                if "creationTimeSeconds" in it:
-                    accepted_times.append(it["creationTimeSeconds"])
-            rating = it["problem"].get("rating", "Unrated")
-            if rating != "Unrated":
-                stats["problem_ratings"][rating] = stats["problem_ratings"].get(rating, 0) + 1
 
-    if accepted_times:
-        stats["average_time_to_solve"] = (
-            (max(accepted_times) - min(accepted_times)) / len(accepted_times)
-            if len(accepted_times) > 1
-            else 0
+                rating = problem.get("rating", "Unrated")
+                if rating != "Unrated":
+                    stats["problem_ratings"][rating] = stats["problem_ratings"].get(rating, 0) + 1
+
+    if stats["total_submissions"] > 0:
+        stats["acceptance_rate"] = round(
+            (stats["accepted_submissions"] / stats["total_submissions"]) * 100, 2
         )
+
+    if accepted_problems:
+        total_attempts = sum(problem_attempts[p] for p in accepted_problems)
+        stats["average_attempts_before_ac"] = round(total_attempts / len(accepted_problems), 2)
+
+    stats["languages_used"] = dict(languages)
+    stats["verdicts_distribution"] = dict(verdicts)
 
     return stats
 
 
 def sort_rating(problem):
     parts = problem.split('-')
-    if len(parts) == 4 and parts[3].isdigit():
-        return int(parts[3])
+    if len(parts) >= 4:
+        try:
+            return int(parts[3])
+        except ValueError:
+            return 0
     return 0
